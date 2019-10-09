@@ -9,6 +9,7 @@ const Nexmo = require("nexmo");
 /***
  * Send SMS API will authenticate only with an api key
  */
+
 router.post('/api/send-sms:apiKey',(req,res) => {
   const { to, from, sms } = req;
 
