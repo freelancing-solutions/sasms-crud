@@ -6,8 +6,6 @@ const config = require("config");
 const cron = require("node-cron");
 // TODO- please finish up and make use of cron-jobs to create a great api
 
-
-
 const routes = require('./routes');
 
 const PORT = process.env.PORT || 3030;
@@ -44,6 +42,11 @@ app.get('/',(req,res) => {
     res.status(200).json({message:'welcome to sa-sms crud api'});
 });
 
+/**
+ * User Management Routes
+ */
+
+ app.use(routes.user_router);
 
 /**
  * all sms related routes
@@ -55,13 +58,11 @@ app.use(routes.sms_router);
  */
 app.use(routes.email_router);
 
-
 /**
  * all fax related routes
  */
-
  app.use(routes.fax_router);
- 
+
 
 // listening for requests
 app.listen(PORT).on('listening', () => {
