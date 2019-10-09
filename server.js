@@ -39,7 +39,7 @@ app.use(cors());
 
 
 app.get('/',(req,res) => {
-    res.send('hooray');
+    res.status(200).json({message:'welcome to sa-sms crud api'});
 });
 
 /**
@@ -54,7 +54,7 @@ app.post("/api/send-mail:apiKey", (req, res) => {
     text === "" ||
     html === ""
   ) {
-    res.send("There was an error sending Email please check your fields");
+    res.status(401).json({message:"There was an error sending Email please check your fields"});
   }
   sendgrid.setApiKey(process.env.sendgrid_api_key || config.get("sendgrid_api_key"));
   sendgrid.send({
@@ -65,7 +65,7 @@ app.post("/api/send-mail:apiKey", (req, res) => {
     html: html
   });
 
-  res.send("Message Successfully sent");
+  res.status(200).json({ message: "Message Successfully sent" });
 });
 // send email function
 
@@ -76,7 +76,7 @@ app.post('/api/send-sms:apiKey',(req,res) => {
   const { to, from, sms } = req;
 
   if (to === "" || from === "" || sms) {
-    res.send("Error sending sms please check your parameters");
+    res.status(401).json({ message: "Error sending sms please check your parameters" });
   }
 
   let text = sms;
@@ -88,22 +88,21 @@ app.post('/api/send-sms:apiKey',(req,res) => {
 
   nexmo.message.sendSms(from, to, text, (err, resData) => {
     if (err) {
-      res.send(err);
+      res.status(401).json({error: err});
     } else {
       if (resData.messages[0]["status"] === "0") {
-        res.send("message sent successfully");
+        res.status(200).json({message:"message sent successfully"});
       } else {
-        res.send(
-          `Message failed with error: ${resData.messages[0]["error-text"]}`
-        );
+        res.status(401).json({ error: `${resData.messages[0]["error-text"]}` });
       }
     }
   });
+
+
 });
-// end of send sms
 
 
-// send fax function
+
 /**
  * send fax api will authenticate only with an apiKey
  */
@@ -111,12 +110,12 @@ app.post('/api/send-fax/:apiKey', (req,res) => {
 
   const { to, from, cover, pages } = req;
   if (to === "" || from === "" || cover === "" || pages === "") {
-    res.send("Error sendig fax");
+    res.status(401).json({message:'some required values where not completed'});
   }
 
   // use twilio api to send fax
 
-  res.send("Successfully sent fax");
+  res.status(200).json({message:"Successfully sent fax"});
 });
 
 // end of send fax
