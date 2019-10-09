@@ -8,6 +8,9 @@ const cron = require("node-cron");
 const sendgrid = require("@sendgrid/mail");
 const Nexmo = require("nexmo");
 
+const auth = require('./auth');
+
+
 const PORT = process.env.PORT || 3030;
 
 const redis = require("redis");
@@ -54,18 +57,36 @@ app.post("/api/send-mail:apiKey", (req, res) => {
     text === "" ||
     html === ""
   ) {
-    res.status(401).json({message:"There was an error sending Email please check your fields"});
+    res.status(500).json({message:"There was an error sending Email please check your fields"});
   }
-  sendgrid.setApiKey(process.env.sendgrid_api_key || config.get("sendgrid_api_key"));
-  sendgrid.send({
-    to: to,
-    from: from,
-    subject: subject,
-    text: text,
-    html: html
-  });
 
-  res.status(200).json({ message: "Message Successfully sent" });
+  auth.authenticate(req.params.apiKey).then(result => {
+    if(result){
+        auth.get_account(req.params.apiKey).then(result => {
+            // check if user has enough credits
+          sendgrid.setApiKey(process.env.sendgrid_api_key || config.get("sendgrid_api_key"));
+          sendgrid.send({
+            to: to,
+            from: from,
+            subject: subject,
+            text: text,
+            html: html
+          });
+
+          // subtract credits equal to a single email sent
+        
+          res.status(200).json({ message: "Message Successfully sent" });
+        }).catch(error => {
+          res.status(500).json(error);
+        });
+    }else{
+      // user is not found
+      res.status(500).json({message : 'invalid api key please register and create an api key before using this api'});
+    }
+  }).catch(error => {
+    res.status(500).json(error);
+  });
+  
 });
 // send email function
 
@@ -76,7 +97,7 @@ app.post('/api/send-sms:apiKey',(req,res) => {
   const { to, from, sms } = req;
 
   if (to === "" || from === "" || sms) {
-    res.status(401).json({ message: "Error sending sms please check your parameters" });
+    res.status(500).json({ message: "Error sending sms please check your parameters" });
   }
 
   let text = sms;
@@ -88,12 +109,12 @@ app.post('/api/send-sms:apiKey',(req,res) => {
 
   nexmo.message.sendSms(from, to, text, (err, resData) => {
     if (err) {
-      res.status(401).json({error: err});
+      res.status(500).json({error: err});
     } else {
       if (resData.messages[0]["status"] === "0") {
         res.status(200).json({message:"message sent successfully"});
       } else {
-        res.status(401).json({ error: `${resData.messages[0]["error-text"]}` });
+        res.status(500).json({ error: `${resData.messages[0]["error-text"]}` });
       }
     }
   });
@@ -110,7 +131,7 @@ app.post('/api/send-fax/:apiKey', (req,res) => {
 
   const { to, from, cover, pages } = req;
   if (to === "" || from === "" || cover === "" || pages === "") {
-    res.status(401).json({message:'some required values where not completed'});
+    res.status(500).json({message:'some required values where not completed'});
   }
 
   // use twilio api to send fax
