@@ -12,6 +12,10 @@ const auth = require("../auth");
 
 const router = express.Router();
 
+
+// TODO- please add authentication to all this routes
+// for example only the owner of the account and also the admin can delete an account
+
 router.get('/api/user/:uid',(req,res) => {
     
     User.find({uid : req.params.uid}).exec().then(user => {
