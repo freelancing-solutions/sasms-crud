@@ -2,14 +2,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const config = require("config");
+
 const cron = require("node-cron");
 // TODO- please finish up and make use of cron-jobs to create a great api
 
-const sendgrid = require("@sendgrid/mail");
-const Nexmo = require("nexmo");
 
-const auth = require('./auth');
 
+const routes = require('./routes');
 
 const PORT = process.env.PORT || 3030;
 
@@ -45,101 +44,24 @@ app.get('/',(req,res) => {
     res.status(200).json({message:'welcome to sa-sms crud api'});
 });
 
+
 /**
- * Send Email EndPoint, will make use of an API Key to send email
+ * all sms related routes
  */
-app.post("/api/send-mail:apiKey", (req, res) => {
-  const { to, from, subject, text, html } = req;
-  if (
-    to === "" ||
-    from === "" ||
-    subject === "" ||
-    text === "" ||
-    html === ""
-  ) {
-    res.status(500).json({message:"There was an error sending Email please check your fields"});
-  }
+app.use(routes.sms_router);
 
-  auth.authenticate(req.params.apiKey).then(result => {
-    if(result){
-        auth.get_account(req.params.apiKey).then(result => {
-            // check if user has enough credits
-          sendgrid.setApiKey(process.env.sendgrid_api_key || config.get("sendgrid_api_key"));
-          sendgrid.send({
-            to: to,
-            from: from,
-            subject: subject,
-            text: text,
-            html: html
-          });
-
-          // subtract credits equal to a single email sent
-        
-          res.status(200).json({ message: "Message Successfully sent" });
-        }).catch(error => {
-          res.status(500).json(error);
-        });
-    }else{
-      // user is not found
-      res.status(500).json({message : 'invalid api key please register and create an api key before using this api'});
-    }
-  }).catch(error => {
-    res.status(500).json(error);
-  });
-  
-});
-// send email function
-
-/***
- * Send SMS API will authenticate only with an api key
+/**
+ * all email related routes
  */
-app.post('/api/send-sms:apiKey',(req,res) => {
-  const { to, from, sms } = req;
-
-  if (to === "" || from === "" || sms) {
-    res.status(500).json({ message: "Error sending sms please check your parameters" });
-  }
-
-  let text = sms;
-
-  const nexmo = new Nexmo({
-    apiKey: process.env.nexmo_key || config.get('nexmo_key'),
-    apiSecret: process.env.nexmo_id || config.get('nexmo_id')
-  });
-
-  nexmo.message.sendSms(from, to, text, (err, resData) => {
-    if (err) {
-      res.status(500).json({error: err});
-    } else {
-      if (resData.messages[0]["status"] === "0") {
-        res.status(200).json({message:"message sent successfully"});
-      } else {
-        res.status(500).json({ error: `${resData.messages[0]["error-text"]}` });
-      }
-    }
-  });
-
-
-});
-
+app.use(routes.email_router);
 
 
 /**
- * send fax api will authenticate only with an apiKey
+ * all fax related routes
  */
-app.post('/api/send-fax/:apiKey', (req,res) => {
 
-  const { to, from, cover, pages } = req;
-  if (to === "" || from === "" || cover === "" || pages === "") {
-    res.status(500).json({message:'some required values where not completed'});
-  }
-
-  // use twilio api to send fax
-
-  res.status(200).json({message:"Successfully sent fax"});
-});
-
-// end of send fax
+ app.use(routes.fax_router);
+ 
 
 // listening for requests
 app.listen(PORT).on('listening', () => {
