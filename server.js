@@ -42,6 +42,9 @@ app.get('/',(req,res) => {
     res.send('hooray');
 });
 
+/**
+ * Send Email EndPoint, will make use of an API Key to send email
+ */
 app.post("/api/send-mail:apiKey", (req, res) => {
   const { to, from, subject, text, html } = req;
   if (
@@ -66,7 +69,9 @@ app.post("/api/send-mail:apiKey", (req, res) => {
 });
 // send email function
 
-// send sms function
+/***
+ * Send SMS API will authenticate only with an api key
+ */
 app.post('/api/send-sms:apiKey',(req,res) => {
   const { to, from, sms } = req;
 
@@ -99,8 +104,10 @@ app.post('/api/send-sms:apiKey',(req,res) => {
 
 
 // send fax function
-
-app.post('/api/:apiKey', (req,res) => {
+/**
+ * send fax api will authenticate only with an apiKey
+ */
+app.post('/api/send-fax/:apiKey', (req,res) => {
 
   const { to, from, cover, pages } = req;
   if (to === "" || from === "" || cover === "" || pages === "") {
