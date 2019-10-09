@@ -122,7 +122,7 @@ app.post('/api/send-fax/:apiKey', (req,res) => {
 
 // listening for requests
 app.listen(PORT).on('listening', () => {
-    console.log(`Articles API Running on  ${PORT} `);    
+    console.log(`sa sms rest api running on port :  ${PORT} `);    
 });
 
 // # Add a simple react single page to explain the api, or else create a separate
