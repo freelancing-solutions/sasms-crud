@@ -10,7 +10,7 @@ info:
 - description: api can be used to send sms messages, bulk sms messages. fax messages and bulk fax messages
 version: '0.1'
 - servers:
-  - \*\* - url: 'https://sa-sms.herokuapp.com/'
+  - \*\* - url: 'https://sms.pocket-money.site/'
 - paths:
   - \*\* /send-sms
     - \*\*\* post:
